@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Generator</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Tajawal:wght@200;300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+ body {
+    font-family: "Cairo", sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+}
+
+.invoice-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 800px; /* Increased max-width for desktop */
+    margin: auto;
+}
+
+h1 {
+    text-align: center;
+    color: #008060;
+}
+h2{
+    color: #013528;
+}
+label{
+    color: #005A40;
+}
+
+input[type="text"], input[type="number"], input[type="date"], input[type="file"] {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px;
+}
+
+.item-row input {
+    width: calc(23% - 10px);
+}
+
+.remove-item-btn {
+    background-color: #f44336;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.remove-item-btn:hover {
+    background-color: #d32f2f;
+}
+
+.add-item-btn, .calculate-btn, .btn {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #008060;
+    color: white;
+    border: none;
+    border-radius: 20px; /* Rounded corners */
+    cursor: pointer;
+    width: 45%; /* Increase button width */
+    margin: 0 5px; /* Add a gap between buttons */
+}
+
+.add-item-btn:hover, .calculate-btn:hover, .btn:hover {
+    background-color: #005A40; /* Darker shade on hover */
+}
+
+.reset {
+    background-color: #FFFFFF;
+    color: #008060;
+    border-radius: 20px;
+    border: solid #008060 1px;
+}
+
+.reset:hover {
+    background-color: #008060;
+    color: #fff;
+}
+
+.total-section {
+    margin-top: 20px;
+    padding: 10px;
+    border-top: 2px solid #333;
+}
+
+.total-section label {
+    font-weight: bold;
+}
+
+#logo {
+    display: block;
+    margin: 10px auto;
+    max-width: 100px; /* Adjust the logo size */
+    height: auto;
+}
+
+.result {
+    margin-top: 20px;
+    font-size: 18px;
+    background-color: #e9f7ef;
+    padding: 15px;
+    border-radius: 5px;
+    color: #155724;
+}
+
+/* Media Query for Desktop */
+@media (min-width: 768px) {
+    .item-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .item-row input {
+        width: 100%; /* Full width for inputs in desktop view */
+    }
+
+    .add-item-btn, .calculate-btn, .btn {
+        width: 48%; /* Adjust button width for better spacing */
+    }
+    
+    h1 {
+        font-size: 2em; /* Increase heading size on desktop */
+    }
+
+    .result {
+        font-size: 20px; /* Larger font for results on desktop */
+    }
+}
+
+    </style>
+</head>
+<body>
+    <img src="https://cdn.prod.website-files.com/614319338322d2f96eb4dd96/62124643bd803240ec14b13a_Wuilt%20logo.svg" alt="Wuilt Logo">
+
+    <div class="invoice-container">
+        <h1>Invoice Generator</h1>
+        <h2>Your Company Information</h2>
+
+        <label for="logoInput">Your Company Logo</label>
+        <input type="file" id="logoInput" accept="image/*" onchange="previewLogo(event)">
+        <img id="logo" src="" alt="Logo Preview" style="display:none;">
+        <label for="companyName">Your Company Name</label>
+        <input type="text" id="companyName" placeholder="Your Company Name">
+        <label for="companyName"> first Name</label>
+        <input type="text" id="firstName" placeholder="Your First Name">
+        <label for="companyName">last Name</label>
+        <input type="text" id="lastName" placeholder="Your Last Name">
+        <label for="companyName">Your website </label>
+        <input type="text" id="website" placeholder="Your Website">
+        <label for="companyName">Your Company Address</label>
+        <input type="text" id="companyAddress" placeholder="Your Company Address">
+        
+        <h2>Client Information</h2>
+        <label for="companyName">Client Company Name</label>
+        <input type="text" id="clientCompanyName" placeholder="Client Company Name">
+        <label for="companyName">Client First Name</label>
+        <input type="text" id="clientFirstName" placeholder="Client First Name">
+        <label for="companyName">Client Last Name</label>
+        <input type="text" id="clientLastName" placeholder="Client Last Name">
+        <label for="companyName">Client Address</label>
+        <input type="text" id="clientAddress" placeholder="Client Address">
+        
+        <h2>Invoice Details</h2>
+        <label for="companyName">Invoice Number</label>
+        <input type="text" id="invoiceNo" placeholder="Invoice Number">
+        <label for="companyName">Invoice Date</label>
+        <input type="date" id="invoiceDate" placeholder="Invoice Date">
+        <label for="companyName">Due Date</label>
+        <input type="date" id="dueDate" placeholder="Due Date">
+        
+        <h2>Items</h2>
+        <div id="items-container">
+            <div class="item-row">
+                <input type="text" class="item-title" placeholder="Item Title">
+                <input type="text" class="item-description" placeholder="Item Description">
+                <input type="number" class="item-quantity" placeholder="Quantity" value="">
+                <input type="number" class="item-price" placeholder="Price" value="">
+                <button class="remove-item-btn" onclick="removeItem(this)">Remove</button>
+            </div>
+        </div> 
+        <button class="add-item-btn" onclick="addItem()">Add Item</button>
+
+        <div class="total-section">
+            <h3>Total</h3>
+            <div>
+                <label>Subtotal:</label>
+                <input type="text" id="subtotal" value="0" readonly>
+            </div>
+            <div>
+                <label>Tax (%):</label>
+                <input type="text" id="tax" value="0">
+            </div>
+            <div>
+                <label>Discount (%):</label>
+                <input type="text" id="discount" value="0">
+            </div>
+            <div>
+                <label>Total:</label>
+                <input type="text" id="total" value="0" readonly>
+            </div>
+        </div>
+
+        <button class="calculate-btn" onclick="calculateTotals()">Calculate Totals</button>
+        <button class="btn" onclick="generatePDF()">Download Now</button>
+    </div>
+
+    <script>
+        function previewLogo(event) {
+            const logo = document.getElementById('logo');
+            logo.src = URL.createObjectURL(event.target.files[0]);
+            logo.style.display = 'block';
+        }
+
+        function addItem() {
+            const itemContainer = document.getElementById('items-container');
+            const newItemRow = document.createElement('div');
+            newItemRow.classList.add('item-row');
+            newItemRow.innerHTML = `
+                <input type="text" class="item-title" placeholder="Item Title">
+                <input type="text" class="item-description" placeholder="Item Description">
+                <input type="number" class="item-quantity" placeholder="Quantity" value="">
+                <input type="number" class="item-price" placeholder="Price" value="">
+                <button class="remove-item-btn" onclick="removeItem(this)">Remove</button>
+            `;
+            itemContainer.appendChild(newItemRow);
+        }
+
+        function removeItem(button) {
+            const itemRow = button.parentElement;
+            itemRow.remove();
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            const itemRows = document.querySelectorAll('.item-row');
+            let subtotal = 0;
+
+            itemRows.forEach(row => {
+                const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                subtotal += quantity * price;
+            });
+
+            const tax = parseFloat(document.getElementById('tax').value) || 0;
+            const discount = parseFloat(document.getElementById('discount').value) || 0;
+
+            const total = subtotal + (subtotal * tax / 100) - (subtotal * discount / 100);
+
+            document.getElementById('subtotal').value = subtotal.toFixed(2);
+            document.getElementById('total').value = total.toFixed(2);
+        }
+
+        function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Title
+    doc.setFontSize(26);
+    doc.setTextColor(0, 51, 102); // Dark Blue for Title
+    doc.text('Invoice', 14, 22);
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0); // Reset to black for the rest of the document
+
+    // Logo
+    const logo = document.getElementById('logo');
+    if (logo.src) {
+        doc.addImage(logo.src, 'PNG', 14, 30, 50, 20); // Logo
+    }
+
+    // Your Company Information
+    doc.setFontSize(14);
+    doc.setTextColor(0, 51, 102);
+    doc.text('Your Company Information', 14, 55);
+    doc.setFont('normal');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Your Company Name: ' + document.getElementById('companyName').value, 14, 65);
+    doc.text('Your Name: ' + document.getElementById('firstName').value + ' ' + document.getElementById('lastName').value, 14, 70);
+    doc.text('Website: ' + document.getElementById('website').value, 14, 75);
+    doc.text('Address: ' + document.getElementById('companyAddress').value, 14, 80);
+
+    // Client Information
+    doc.setFont('bold');
+    doc.setTextColor(0, 51, 102);
+    doc.text('Client Information', 14, 90);
+    doc.setFont('normal');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Client Company Name: ' + document.getElementById('clientCompanyName').value, 14, 100);
+    doc.text('Client Name: ' + document.getElementById('clientFirstName').value + ' ' + document.getElementById('clientLastName').value, 14, 105);
+    doc.text('Client Address: ' + document.getElementById('clientAddress').value, 14, 110);
+    doc.text('Invoice Number: ' + document.getElementById('invoiceNo').value, 14, 115);
+    doc.text('Invoice Date: ' + document.getElementById('invoiceDate').value, 14, 120);
+    doc.text('Due Date: ' + document.getElementById('dueDate').value, 14, 125);
+
+    // Items
+    doc.setFont('bold');
+    doc.setTextColor(0, 51, 102);
+    doc.text('Items', 14, 135);
+    doc.setFont('normal');
+    doc.setTextColor(0, 0, 0);
+    const itemRows = document.querySelectorAll('.item-row');
+    let y = 140;
+
+    // Table Header
+    doc.setFillColor(220, 220, 220);
+    doc.rect(14, y, 180, 10, 'F'); // Table header background
+    doc.setFont('bold');
+    doc.text('Item Title', 14, y + 7);
+    doc.text('Description', 70, y + 7);
+    doc.text('Quantity', 140, y + 7);
+    doc.text('Price', 160, y + 7);
+    y += 15;
+
+    // Item Rows
+    itemRows.forEach(row => {
+        const title = row.querySelector('.item-title').value || 'N/A';
+        const description = row.querySelector('.item-description').value || 'N/A';
+        const quantity = row.querySelector('.item-quantity').value || 0;
+        const price = row.querySelector('.item-price').value || 0;
+
+        doc.setFont('normal');
+        doc.text(title, 14, y);
+        doc.text(description, 70, y);
+        doc.text(quantity.toString(), 140, y);
+        doc.text(`$${parseFloat(price).toFixed(2)}`, 160, y);
+        y += 10; // Increase y position for the next item
+    });
+
+    // Total Calculation
+    doc.setFont('bold');
+    y += 10; // Add space before totals
+    doc.setTextColor(0, 51, 102);
+    doc.text('Totals', 14, y);
+    doc.setTextColor(0, 0, 0);
+    y += 10;
+    doc.text('Subtotal: $' + document.getElementById('subtotal').value, 14, y);
+    y += 10;
+    doc.text('Tax: $' + (parseFloat(document.getElementById('subtotal').value) * (parseFloat(document.getElementById('tax').value) || 0) / 100).toFixed(2), 14, y);
+    y += 10;
+    doc.text('Discount: $' + (parseFloat(document.getElementById('subtotal').value) * (parseFloat(document.getElementById('discount').value) || 0) / 100).toFixed(2), 14, y);
+    y += 10;
+    doc.setFont('bold');
+    doc.setTextColor(0, 51, 102);
+    doc.text('Total: $' + document.getElementById('total').value, 14, y);
+
+    // Save PDF
+    const filename = 'my_invoice.pdf'; // Change to your preferred filename
+    doc.save(filename);
+}
+    </script>
+</body>
+</html>
